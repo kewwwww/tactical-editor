@@ -1,1 +1,96 @@
+import pygame
+import os
+import config
+
+# Initialize Pygame
+pygame.init()
+
+# Set the width and height of the screen [width, height]
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Warsong Gulch Map")
+
+# Load the Warsong Gulch map image
+warsong_gulch_map = pygame.image.load(config.MAP_IMAGE_PATH)
+
+# Set the icon path
+config.ICON_PATH = r"C:\Users\Administrator\tactical editor\class icons"
+
+# Load class icon images
+class_icons = {}
+for class_name in config.CLASS_NAMES:
+    icon = pygame.image.load(os.path.join(config.ICON_PATH, f"{class_name}.png"))
+    class_icons[class_name] = pygame.transform.scale(icon, (50, 50))  # Scale icon to fit the bar
+
+
+# Initialize variables for dragging
+dragging = False
+drag_offset = (0, 0)
+dragged_icon = None
+start_pos = None
+
+# Function to draw an arrow
+def draw_arrow(start, end, color):
+    pygame.draw.line(screen, color, start, end, 3)
+    dx = end[0] - start[0]
+    dy = end[1] - start[1]
+    angle = pygame.math.atan2(dy, dx)
+    arrow_length = 15
+    arrow_degrees = 0.5
+    pygame.draw.line(screen, color, end, (end[0] - arrow_length * pygame.math.cos(angle - arrow_degrees), end[1] - arrow_length * pygame.math.sin(angle - arrow_degrees)), 3)
+    pygame.draw.line(screen, color, end, (end[0] - arrow_length * pygame.math.cos(angle + arrow_degrees), end[1] - arrow_length * pygame.math.sin(angle + arrow_degrees)), 3)
+
+# Main loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left mouse button
+                mouse_pos = pygame.mouse.get_pos()
+                # Check if any icon is clicked
+                for class_name, icon in class_icons.items():
+                    icon_rect = icon.get_rect(topleft=(SCREEN_WIDTH // 2 - 225 + (50 + 10) * config.CLASS_NAMES.index(class_name), SCREEN_HEIGHT - 70))
+                    if icon_rect.collidepoint(mouse_pos):
+                        dragging = True
+                        drag_offset = (mouse_pos[0] - icon_rect.left, mouse_pos[1] - icon_rect.top)
+                        dragged_icon = class_icons[class_name]
+                        start_pos = (icon_rect.left + drag_offset[0], icon_rect.top + drag_offset[1])
+                        break
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:  # Left mouse button
+                if dragging:
+                    dragging = False
+                    mouse_pos = pygame.mouse.get_pos()
+                    # Check if the icon is dropped on the map
+                    if 0 <= mouse_pos[0] <= SCREEN_WIDTH and 0 <= mouse_pos[1] <= SCREEN_HEIGHT:
+                        # Do something with the dropped icon position, for now, just print it
+                        print("Icon dropped at:", mouse_pos)
+                        end_pos = mouse_pos
+                        draw_arrow(start_pos, end_pos, (0, 0, 0))
+                    dragged_icon = None
+        elif event.type == pygame.MOUSEMOTION:
+            if dragging:
+                mouse_pos = pygame.mouse.get_pos()
+                dragged_icon_rect = dragged_icon.get_rect(topleft=(mouse_pos[0] - drag_offset[0], mouse_pos[1] - drag_offset[1]))
+                screen.blit(warsong_gulch_map, (0, 0))
+                screen.blit(dragged_icon, dragged_icon_rect.topleft)
+
+    # Clear the screen
+    screen.fill((255, 255, 255))
+
+    # Display the Warsong Gulch map
+    screen.blit(warsong_gulch_map, (0, 0))
+
+    # Display class icons bar
+    for class_name, icon in class_icons.items():
+        screen.blit(icon, (SCREEN_WIDTH // 2 - 225 + (50 + 10) * config.CLASS_NAMES.index(class_name), SCREEN_HEIGHT - 70))
+
+    # Update the screen
+    pygame.display.flip()
+
+# Quit Pygame
+pygame.quit()
 
