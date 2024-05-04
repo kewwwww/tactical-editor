@@ -1,1 +1,7 @@
+import os
 
+# Set paths
+MAP_IMAGE_PATH = os.path.join(r"C:\Users\Administrator\tactical editor", "WorldMap-WarsongGulch")
+ICON_PATH = r"C:\Users\Administrator\tactical editor\class icons"
+
+CLASS_NAMES = ["warrior", "mage", "rogue", "hunter", "warlock", "paladin", "shaman", "druid", "priest"]
